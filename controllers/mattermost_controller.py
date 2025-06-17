@@ -12,16 +12,13 @@ def handle_webhook():
         return jsonify({"text": "❌ Invalid token"}), 403
 
     text = request.form.get("text", "")
-    # 1) Gọi AI để parse intent
     ai_resp = analyze_text(text)
 
-    intent = ai_resp.get("intent")
+    intent = ai_resp.get("project_id ")
     if intent == "initiate_workflow":
         wf_name = ai_resp.get("workflow_name")
         tasks   = ai_resp.get("tasks", [])
-        # 2) Tạo project + tasks lên ERPNext
         project_id = create_project_with_tasks(wf_name, tasks)
-        # 3) Gửi confirm về Mattermost
         send_message(f"✅ Created *{wf_name}* (ID={project_id}) with {len(tasks)} tasks.")
     else:
         send_message("🤖 Sorry, I didn't understand your request.")
